@@ -1,7 +1,9 @@
 package com.example.suhaas.traveltracker;
 
 
-public class Memory {
+import java.io.Serializable;
+
+public class Memory implements Serializable{
     double latitude;
     double longitude;
     String city;

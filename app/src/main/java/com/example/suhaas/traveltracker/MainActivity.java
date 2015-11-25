@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback,
-        GoogleMap.OnMapClickListener,
+        GoogleMap.OnMapClickListener, MemoryDialogFragment.Listener,
 GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
 
     private static final String TAG = "MainActivity";
@@ -70,14 +70,20 @@ GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
         memory.country = bestMatch.getAddressLine(maxLine);
         memory.latitude = latLng.latitude;
         memory.longitude = latLng.longitude;
-        memory.notes = "My notes..";
 
-        new MemoryDialogFragment().show(getFragmentManager(), MEMORY_DIALOG_TAG);
+        MemoryDialogFragment.newInstance(memory).show(getFragmentManager(), MEMORY_DIALOG_TAG);
+    }
 
+    @Override
+    public void OnSaveClicked(Memory memory) {
         Marker marker = mMap.addMarker(new MarkerOptions()
-                .position(latLng));
+                .position(new LatLng(memory.latitude,memory.longitude)));
 
         mMemories.put(marker.getId(), memory);
+    }
+
+    @Override
+    public void OnCancelClicked(Memory memory) {
 
     }
 
