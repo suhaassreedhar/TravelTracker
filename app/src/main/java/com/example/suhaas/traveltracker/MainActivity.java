@@ -1,5 +1,9 @@
 package com.example.suhaas.traveltracker;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -13,15 +17,22 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback,
         GoogleMap.OnMapClickListener,
 GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
 
     private static final String TAG = "MainActivity";
+    private static final String MEMORY_DIALOG_TAG = "MemoryDialog";
     private GoogleMap mMap;
     private GoogleApiClient mGoogleApiClient;
+    private HashMap<String, Memory> mMemories = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,14 +49,36 @@ GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
         mMap = googleMap;
         mMap.setMyLocationEnabled(true);
         mMap.setOnMapClickListener(this);
+        mMap.setInfoWindowAdapter(new MarkerAdapter(getLayoutInflater(),mMemories));
     }
 
     @Override
     public void onMapClick(LatLng latLng) {
-        mMap.addMarker(new MarkerOptions()
-            .position(latLng)
-            .title("our title is")
-            .snippet("our snippet is"));
+        Geocoder geocoder = new Geocoder(this);
+        List<Address> matches = null;
+        try {
+            matches = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        Address bestMatch = (matches.isEmpty()) ? null : matches.get(0);
+        int maxLine = bestMatch.getMaxAddressLineIndex();
+
+        Memory memory = new Memory();
+        memory.city = bestMatch.getAddressLine(maxLine -1);
+        memory.country = bestMatch.getAddressLine(maxLine);
+        memory.latitude = latLng.latitude;
+        memory.longitude = latLng.longitude;
+        memory.notes = "My notes..";
+
+        new MemoryDialogFragment().show(getFragmentManager(), MEMORY_DIALOG_TAG);
+
+        Marker marker = mMap.addMarker(new MarkerOptions()
+                .position(latLng));
+
+        mMemories.put(marker.getId(), memory);
+
     }
 
     private void addGoogleAPIClient(){
