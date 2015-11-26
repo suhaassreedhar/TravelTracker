@@ -26,13 +26,15 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback,
         GoogleMap.OnMapClickListener, MemoryDialogFragment.Listener,
-GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
+        GoogleMap.OnMarkerDragListener,
+        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
 
     private static final String TAG = "MainActivity";
     private static final String MEMORY_DIALOG_TAG = "MemoryDialog";
     private GoogleMap mMap;
     private GoogleApiClient mGoogleApiClient;
     private HashMap<String, Memory> mMemories = new HashMap<>();
+    private MemoriesDataSource mDataSource;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +43,7 @@ GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
 
         MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+        mDataSource = new MemoriesDataSource(this);
     }
 
 
@@ -49,11 +52,59 @@ GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
         mMap = googleMap;
         mMap.setMyLocationEnabled(true);
         mMap.setOnMapClickListener(this);
-        mMap.setInfoWindowAdapter(new MarkerAdapter(getLayoutInflater(),mMemories));
+        mMap.setInfoWindowAdapter(new MarkerAdapter(getLayoutInflater(), mMemories));
+        mMap.setOnMarkerDragListener(this);
+        List<Memory> memories = mDataSource.getAllMemories();
+        for (Memory memory: memories){
+            addMarker(memory);
+        }
     }
 
     @Override
     public void onMapClick(LatLng latLng) {
+        Memory memory = new Memory();
+        updateMemoryPosition(memory, latLng);
+
+        MemoryDialogFragment.newInstance(memory).show(getFragmentManager(), MEMORY_DIALOG_TAG);
+    }
+
+    @Override
+    public void OnSaveClicked(Memory memory) {
+        addMarker(memory);
+        mDataSource.createMemory(memory);
+    }
+
+    private void addMarker(Memory memory) {
+        Marker marker = mMap.addMarker(new MarkerOptions()
+                .draggable(true)
+                .position(new LatLng(memory.latitude,memory.longitude)));
+
+        mMemories.put(marker.getId(), memory);
+    }
+
+    @Override
+    public void OnCancelClicked(Memory memory) {
+
+    }
+
+    @Override
+    public void onMarkerDragStart(Marker marker) {
+
+    }
+
+    @Override
+    public void onMarkerDrag(Marker marker) {
+
+    }
+
+    @Override
+    public void onMarkerDragEnd(Marker marker) {
+        Memory memory = mMemories.get(marker.getId());
+        updateMemoryPosition(memory,marker.getPosition());
+        mDataSource.updateMemory(memory);
+    }
+
+    private void updateMemoryPosition(Memory memory, LatLng latLng) {
         Geocoder geocoder = new Geocoder(this);
         List<Address> matches = null;
         try {
@@ -65,26 +116,11 @@ GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
         Address bestMatch = (matches.isEmpty()) ? null : matches.get(0);
         int maxLine = bestMatch.getMaxAddressLineIndex();
 
-        Memory memory = new Memory();
+
         memory.city = bestMatch.getAddressLine(maxLine -1);
         memory.country = bestMatch.getAddressLine(maxLine);
         memory.latitude = latLng.latitude;
         memory.longitude = latLng.longitude;
-
-        MemoryDialogFragment.newInstance(memory).show(getFragmentManager(), MEMORY_DIALOG_TAG);
-    }
-
-    @Override
-    public void OnSaveClicked(Memory memory) {
-        Marker marker = mMap.addMarker(new MarkerOptions()
-                .position(new LatLng(memory.latitude,memory.longitude)));
-
-        mMemories.put(marker.getId(), memory);
-    }
-
-    @Override
-    public void OnCancelClicked(Memory memory) {
-
     }
 
     private void addGoogleAPIClient(){
@@ -99,7 +135,7 @@ GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
     @Override
     protected void onRestart() {
         super.onRestart();
-//        mGoogleApiClient.connect();
+        mGoogleApiClient.connect();
     }
 
 
