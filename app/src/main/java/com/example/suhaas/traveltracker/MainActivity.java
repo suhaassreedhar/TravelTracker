@@ -1,10 +1,14 @@
 package com.example.suhaas.traveltracker;
 
 import android.app.AlertDialog;
+import android.app.LoaderManager;
 import android.content.DialogInterface;
+import android.content.Loader;
+import android.database.Cursor;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -26,8 +30,9 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback,
         GoogleMap.OnMapClickListener, MemoryDialogFragment.Listener,
-        GoogleMap.OnMarkerDragListener,
-        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
+        GoogleMap.OnMarkerDragListener, GoogleMap.OnInfoWindowClickListener,
+        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
+        LoaderManager.LoaderCallbacks<Cursor>{
 
     private static final String TAG = "MainActivity";
     private static final String MEMORY_DIALOG_TAG = "MemoryDialog";
@@ -54,7 +59,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.setOnMapClickListener(this);
         mMap.setInfoWindowAdapter(new MarkerAdapter(getLayoutInflater(), mMemories));
         mMap.setOnMarkerDragListener(this);
-        List<Memory> memories = mDataSource.getAllMemories();
+        mMap.setOnInfoWindowClickListener(this);
+
+        getLoaderManager().initLoader(0,null,this);
+    }
+
+    private void onFetchedMemories(List<Memory> memories) {
         for (Memory memory: memories){
             addMarker(memory);
         }
@@ -64,7 +74,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapClick(LatLng latLng) {
         Memory memory = new Memory();
         updateMemoryPosition(memory, latLng);
-
         MemoryDialogFragment.newInstance(memory).show(getFragmentManager(), MEMORY_DIALOG_TAG);
     }
 
@@ -72,6 +81,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void OnSaveClicked(Memory memory) {
         addMarker(memory);
         mDataSource.createMemory(memory);
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        return new MemoriesLoader(this, mDataSource);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        onFetchedMemories(mDataSource.cursorToMemories(data));
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+
     }
 
     private void addMarker(Memory memory) {
@@ -100,8 +124,27 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMarkerDragEnd(Marker marker) {
         Memory memory = mMemories.get(marker.getId());
-        updateMemoryPosition(memory,marker.getPosition());
+        updateMemoryPosition(memory, marker.getPosition());
         mDataSource.updateMemory(memory);
+    }
+
+    @Override
+    public void onInfoWindowClick(final Marker marker) {
+        final Memory memory = mMemories.get(marker.getId());
+        String [] actions = {"Edit", "Delete"};
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(memory.city+", "+memory.country)
+                .setItems(actions, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (which == 1){
+                            marker.remove();
+                            mDataSource.deleteMemory(memory);
+                        }
+                    }
+                });
+        builder.create().show();
+
     }
 
     private void updateMemoryPosition(Memory memory, LatLng latLng) {
@@ -135,7 +178,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onRestart() {
         super.onRestart();
-        mGoogleApiClient.connect();
+//        mGoogleApiClient.connect();
     }
 
 

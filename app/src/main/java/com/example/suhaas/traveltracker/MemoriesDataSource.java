@@ -30,9 +30,16 @@ public class MemoriesDataSource {
     }
 
     public List<Memory> getAllMemories(){
-        List<Memory> memories = new ArrayList<>();
+        Cursor cursor = allMemoriesCursor();
+        return cursorToMemories(cursor);
+    }
 
-        Cursor cursor = mDbHelper.getReadableDatabase().query(DbHelper.MEMORIES_TABLE, allcolumns, null, null, null, null, null);
+    public Cursor allMemoriesCursor(){
+        return mDbHelper.getReadableDatabase().query(DbHelper.MEMORIES_TABLE, allcolumns, null, null, null, null, null);
+    }
+
+    public List<Memory> cursorToMemories(Cursor cursor){
+        List<Memory> memories = new ArrayList<>();
         cursor.moveToFirst();
         while (!cursor.isAfterLast()){
             Memory memory = cursorToMemory(cursor);
@@ -56,7 +63,17 @@ public class MemoriesDataSource {
         mDbHelper.getWritableDatabase().update(
                 mDbHelper.MEMORIES_TABLE,
                 values,
-                mDbHelper.COLUMN_ID+"=?",
+                mDbHelper.COLUMN_ID + "=?",
+                whereArgs
+        );
+    }
+
+    public void deleteMemory(Memory memory){
+        String [] whereArgs = {String.valueOf(memory.id)};
+
+        mDbHelper.getWritableDatabase().delete(
+                mDbHelper.MEMORIES_TABLE,
+                mDbHelper.COLUMN_ID + "=?",
                 whereArgs
         );
     }
