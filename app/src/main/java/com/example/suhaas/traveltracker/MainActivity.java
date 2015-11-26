@@ -46,22 +46,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
         mDataSource = new MemoriesDataSource(this);
+        getLoaderManager().initLoader(0, null, this);
+
+        MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
+        mMap = mapFragment.getMap();
+        onMapReady(mMap);
     }
 
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
         mMap.setMyLocationEnabled(true);
         mMap.setOnMapClickListener(this);
         mMap.setInfoWindowAdapter(new MarkerAdapter(getLayoutInflater(), mMemories));
         mMap.setOnMarkerDragListener(this);
         mMap.setOnInfoWindowClickListener(this);
-
-        getLoaderManager().initLoader(0,null,this);
     }
 
     private void onFetchedMemories(List<Memory> memories) {

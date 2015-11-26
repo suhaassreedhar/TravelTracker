@@ -46,7 +46,6 @@ public class MemoriesDataSource {
             memories.add(memory);
             cursor.moveToNext();
         }
-        cursor.close();
         return memories;
     }
 

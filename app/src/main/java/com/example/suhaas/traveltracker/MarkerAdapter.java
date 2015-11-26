@@ -2,7 +2,6 @@ package com.example.suhaas.traveltracker;
 
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.Button;
 import android.widget.TextView;
 
 import com.google.android.gms.maps.GoogleMap;
@@ -40,7 +39,6 @@ public class MarkerAdapter implements GoogleMap.InfoWindowAdapter {
         snippetView.setText(memory.country);
         TextView notesView = (TextView)mView.findViewById(R.id.notes);
         notesView.setText(memory.notes);
-
         return mView;
     }
 }

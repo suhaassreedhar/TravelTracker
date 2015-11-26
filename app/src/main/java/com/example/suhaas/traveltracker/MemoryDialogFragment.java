@@ -34,6 +34,9 @@ public class MemoryDialogFragment extends DialogFragment{
         cityView.setText(mMemory.city);
         TextView countryView = (TextView) mView.findViewById(R.id.country);
         countryView.setText(mMemory.country);
+        EditText notesView = (EditText) mView.findViewById(R.id.notes);
+        notesView.setText(mMemory.notes);
+
 
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
