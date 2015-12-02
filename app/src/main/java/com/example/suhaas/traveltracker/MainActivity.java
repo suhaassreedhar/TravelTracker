@@ -73,7 +73,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapClick(LatLng latLng) {
         Memory memory = new Memory();
-        updateMemoryPosition(memory, latLng);
+        try {
+            updateMemoryPosition(memory, latLng);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         MemoryDialogFragment.newInstance(memory).show(getFragmentManager(), MEMORY_DIALOG_TAG);
     }
 
@@ -124,7 +128,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMarkerDragEnd(Marker marker) {
         Memory memory = mMemories.get(marker.getId());
-        updateMemoryPosition(memory, marker.getPosition());
+        try {
+            updateMemoryPosition(memory, marker.getPosition());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         mDataSource.updateMemory(memory);
     }
 

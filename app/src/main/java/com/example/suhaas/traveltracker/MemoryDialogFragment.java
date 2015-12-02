@@ -34,10 +34,6 @@ public class MemoryDialogFragment extends DialogFragment{
         cityView.setText(mMemory.city);
         TextView countryView = (TextView) mView.findViewById(R.id.country);
         countryView.setText(mMemory.country);
-        EditText notesView = (EditText) mView.findViewById(R.id.notes);
-        notesView.setText(mMemory.notes);
-
-
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setView(mView)
@@ -46,7 +42,7 @@ public class MemoryDialogFragment extends DialogFragment{
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         EditText notesView = (EditText) mView.findViewById(R.id.notes);
-                        notesView.getText().toString();
+                        mMemory.notes = notesView.getText().toString();
                             mListener.OnSaveClicked(mMemory);
                     }
                 })
