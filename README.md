@@ -1,7 +1,7 @@
 # TravelTracker
 This application is used to keep track of all the travelling events of a particular user.
 
-#Features
+##Features
 *Simple layout and easy to use
 
 *Added markers to locate the position
@@ -12,5 +12,5 @@ This application is used to keep track of all the travelling events of a particu
 
 *Provides the facility of storing a travel event
 
-Snapshot of this app:
+###Snapshot of this app:
 
